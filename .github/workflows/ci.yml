@@ -1,6 +1,7 @@
 name: ci
 
 # Must stay in lockstep with .pre-commit-config.yaml (local hooks).
+# No lockfile — install from package.json ranges only.
 on:
   push:
     branches: [master, main]
@@ -15,9 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
-      # Fails if package.json and package-lock.json are out of sync.
-      - run: npm ci
+      - run: npm install
       - run: npm run typecheck
       - run: npm run build
       # Host loads dist/plugin.js from GitHub via jsDelivr — keep it in tree.

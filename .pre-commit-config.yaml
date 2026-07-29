@@ -1,17 +1,12 @@
 # Local gates that must match CI (.github/workflows/ci.yml).
 # Install: pip install pre-commit && pre-commit install
 # Run all: pre-commit run --all-files
+#
+# No package-lock — do not add npm ci / lock-sync hooks.
 
 repos:
   - repo: local
     hooks:
-      - id: npm-ci-sync
-        name: package-lock in sync (npm ci --dry-run)
-        entry: bash -c 'npm ci --dry-run --ignore-scripts'
-        language: system
-        pass_filenames: false
-        files: ^(package\.json|package-lock\.json)$
-
       - id: typecheck
         name: npm run typecheck
         entry: bash -c 'npm run typecheck'
