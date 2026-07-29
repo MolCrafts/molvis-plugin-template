@@ -1,0 +1,8 @@
+node_modules/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example
+# dist/ is committed so jsDelivr can serve the plugin from GitHub tags.
+# Rebuild with `npm run build` before tagging a release.

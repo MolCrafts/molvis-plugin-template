@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      # Host loads dist/plugin.js from GitHub via jsDelivr — keep it in tree.
+      - name: Ensure dist is up to date
+        run: |
+          git add -f dist
+          if ! git diff --cached --quiet; then
+            echo "::error::dist/ is stale. Run npm run build and commit dist/."
+            git diff --cached --stat
+            exit 1
+          fi

@@ -1,0 +1,50 @@
+{
+  "name": "@molcrafts/molvis-plugin-template",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Official MolVis page plugin template (ESM + molrs + React)",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MolCrafts/molvis-plugin-template.git"
+  },
+  "homepage": "https://github.com/MolCrafts/molvis-plugin-template",
+  "bugs": {
+    "url": "https://github.com/MolCrafts/molvis-plugin-template/issues"
+  },
+  "keywords": [
+    "molvis",
+    "molcrafts",
+    "molrs",
+    "plugin",
+    "molecular-visualization"
+  ],
+  "scripts": {
+    "build": "rsbuild build",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build",
+    "prepublishOnly": "npm run check"
+  },
+  "peerDependencies": {
+    "@molcrafts/molrs": ">=0.9.0",
+    "@molcrafts/molvis-core": ">=0.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@molcrafts/molrs": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@molcrafts/molrs": "^0.9.3",
+    "@molcrafts/molvis-core": "^0.1.1",
+    "@rsbuild/core": "^2.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.8.0"
+  }
+}
