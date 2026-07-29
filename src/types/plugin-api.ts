@@ -1,21 +1,7 @@
 /**
- * MolVis page plugin contracts — shipped **in this template**, not as a
- * separate npm package (yet).
+ * MolVis page plugin contracts — domain-oriented (no free-floating `api.ui`).
  *
- * ## Types package decision
- *
- * **No separate `@molcrafts/molvis-plugin-api` package for now.**
- *
- * Reasons:
- * 1. The page plugin surface is still experimental; a published types-only
- *    package would lag or freeze the API prematurely.
- * 2. Domain types already come from `@molcrafts/molvis-core` +
- *    `@molcrafts/molrs` (`Modifier`, `Frame`, `Overlay`, …).
- * 3. This file is the contribution-surface contract; fork/copy it until the
- *    host API stabilizes, then extract a versioned types package from molvis.
- *
- * Keep aligned with molvis monorepo `page/src/plugins/types.ts` when you
- * bump host compatibility.
+ * Keep aligned with molvis monorepo `page/src/plugins/types.ts`.
  */
 
 import type { Modifier, Molvis, Overlay } from "@molcrafts/molvis-core";
@@ -26,10 +12,8 @@ export type PluginCommandFn<A = unknown, R = unknown> = (
   args: A,
 ) => R | Promise<R>;
 
-/** Factory for a plugin interaction mode (host ModeManager). */
 export type PluginModeFactory = (app: Molvis) => unknown;
 
-/** Repo-root manifest (`molvis.plugin.json`). */
 export interface PluginManifest {
   id: string;
   name: string;
@@ -39,7 +23,6 @@ export interface PluginManifest {
   description?: string;
 }
 
-/** Default export of the plugin ESM entry. */
 export interface MolvisPluginModule {
   id: string;
   name?: string;
@@ -66,33 +49,25 @@ export type ModifierPanelComponent = FC<{
   onUpdate: () => void;
 }>;
 
-export interface SidebarPanelSpec {
-  id: string;
-  title: string;
-  order?: number;
-  icon?: ReactNode;
-  render: FC<{ app: Molvis | null }>;
-}
-
-export interface ToolbarActionSpec {
-  id: string;
+export interface CommandToolbarOptions {
+  id?: string;
   label: string;
   icon?: ReactNode;
   order?: number;
-  onClick: (app: Molvis) => void;
   isVisible?: (app: Molvis) => boolean;
-}
-
-export interface SettingsSectionSpec {
-  id: string;
-  title: string;
-  order?: number;
-  render: FC<{ app: Molvis | null }>;
+  args?: unknown;
 }
 
 export interface ModePanelSpec {
   id: string;
   title?: string;
+  order?: number;
+  render: FC<{ app: Molvis | null }>;
+}
+
+export interface SettingsSectionSpec {
+  id: string;
+  title: string;
   order?: number;
   render: FC<{ app: Molvis | null }>;
 }
@@ -142,8 +117,8 @@ export type PluginRpcHandler = (
 ) => unknown | Promise<unknown>;
 
 /**
- * Host facade. Every `register*` is disposed when the plugin is disabled
- * or removed.
+ * Domain-oriented plugin surface. UI is attached to each domain, not a
+ * separate `api.ui` namespace.
  */
 export interface PluginAPI {
   readonly app: Molvis;
@@ -152,38 +127,44 @@ export interface PluginAPI {
   readonly storage: PluginStorage;
 
   modifiers: {
-    register(kind: string, category: string, factory: () => Modifier): void;
-    registerPanel(kind: string, component: ModifierPanelComponent): void;
-  };
-
-  commands: {
-    register<A = unknown, R = unknown>(
-      name: string,
-      fn: PluginCommandFn<A, R>,
+    register(
+      kind: string,
+      category: string,
+      factory: () => Modifier,
+      options?: { panel?: ModifierPanelComponent },
     ): void;
   };
 
   modes: {
-    register(id: string, factory: PluginModeFactory): void;
-  };
-
-  overlays: {
-    add(overlay: Overlay): void;
+    register(
+      id: string,
+      factory: PluginModeFactory,
+      options?: { panel?: ModePanelSpec },
+    ): void;
+    registerToolsPanel(mode: string, spec: ModePanelSpec): void;
   };
 
   analysis: {
     register(spec: PluginAnalysisSpec): void;
   };
 
-  ui: {
-    registerSidebarPanel(spec: SidebarPanelSpec): void;
-    registerToolbarAction(spec: ToolbarActionSpec): void;
-    registerSettingsSection(spec: SettingsSectionSpec): void;
-    registerModePanel(mode: string, spec: ModePanelSpec): void;
+  commands: {
+    register<A = unknown, R = unknown>(
+      name: string,
+      fn: PluginCommandFn<A, R>,
+      options?: { toolbar?: CommandToolbarOptions },
+    ): void;
+  };
+
+  overlays: {
+    add(overlay: Overlay): void;
+  };
+
+  settings: {
+    registerSection(spec: SettingsSectionSpec): void;
   };
 
   rpc: {
-    /** Host prefixes with `plugin.<pluginId>.` when needed. */
     registerMethod(name: string, handler: PluginRpcHandler): void;
   };
 }

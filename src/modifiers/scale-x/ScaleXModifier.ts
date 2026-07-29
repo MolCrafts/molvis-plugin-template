@@ -1,15 +1,11 @@
 /**
- * Example data modifier that scales atom X coordinates.
- *
- * Uses `@molcrafts/molrs` `Frame` (shared with the host — never bundle molrs).
- * Frame transforms follow the core convention: new Frame + insertBlock + write.
+ * Example pipeline modifier — scales atom X coordinates via molrs Frame.
  */
 
 import { type Frame, Frame as MolrsFrame } from "@molcrafts/molrs";
 import { ModifierCapability } from "@molcrafts/molvis-core";
-import { BaseModifier } from "../shims/BaseModifier";
+import { BaseModifier } from "../../shims/BaseModifier";
 
-/** Registry / panel kind — keep in sync with `register` + `registerPanel`. */
 export const SCALE_X_KIND = "Scale X";
 
 export class ScaleXModifier extends BaseModifier {
@@ -34,7 +30,6 @@ export class ScaleXModifier extends BaseModifier {
       x[i] *= this.factor;
     }
 
-    // Immutable transform: copy blocks onto a new Frame, then mutate columns.
     const result = new MolrsFrame();
     result.insertBlock("atoms", atoms);
     const resultAtoms = result.getBlock("atoms");
@@ -44,7 +39,6 @@ export class ScaleXModifier extends BaseModifier {
     const bonds = input.getBlock("bonds");
     if (bonds) result.insertBlock("bonds", bonds);
 
-    // Preserve simulation cell when present (optional on Frame).
     const box = (input as Frame & { box?: unknown }).box;
     if (box !== undefined) {
       (result as Frame & { box?: unknown }).box = box;

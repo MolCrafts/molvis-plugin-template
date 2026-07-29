@@ -3,142 +3,114 @@
 [![ci](https://github.com/MolCrafts/molvis-plugin-template/actions/workflows/ci.yml/badge.svg)](https://github.com/MolCrafts/molvis-plugin-template/actions/workflows/ci.yml)
 
 Official **template repository** for [MolVis](https://github.com/MolCrafts/molvis)
-page plugins. Use **GitHub → Use this template** (or fork) to start a plugin.
+page plugins. Use **GitHub → Use this template** (or fork).
 
-| Feature | Support |
-|---------|---------|
-| Runtime load from GitHub (`owner/repo@tag`) | ✅ |
-| React property panels / toolbar / sidebar | ✅ |
-| `@molcrafts/molrs` (`Frame` / columns) | ✅ peer + externalized |
-| `@molcrafts/molvis-core` modifiers / commands | ✅ peer + externalized |
-| Separate types npm package | ❌ (types ship in-repo — see below) |
+## Contribution domains (not a free-form UI bag)
+
+Each plugin extends one or more **domains**. UI for that domain is registered
+**with the domain**, not under a separate `api.ui`:
+
+| Domain | Folder | Logic | UI (owned by the domain) |
+|--------|--------|--------|---------------------------|
+| **modifiers** | `src/modifiers/` | pipeline factory | property panel |
+| **modes** | `src/modes/` | interaction mode | tools panel while mode is active |
+| **analysis** | `src/analysis/` | compute | left Analysis picker + params + result |
+| **commands** | `src/commands/` | named action | optional toolbar button |
+| **overlays** | `src/overlays/` | scene decoration | — |
+| **settings** | `src/settings/` | plugin prefs | Settings section for *this* plugin |
+| **rpc** | (in activate) | JSON-RPC | — |
+
+```
+src/
+  index.tsx                 # activate → call each domain register()
+  types/plugin-api.ts       # PluginAPI contract (copy of host types)
+  modifiers/scale-x/        # example modifier + panel
+  analysis/atom-count/      # example analysis (picker “Plugins” group)
+  commands/hello/           # example command + toolbar
+  settings/about/           # example plugin settings section
+  modes/                    # README — how to add a mode
+  overlays/                 # README — how to add overlays
+```
+
+### API sketch
+
+```ts
+// Modifier + its panel in one call
+api.modifiers.register(kind, category, factory, { panel: ScaleXPanel });
+
+// Analysis (form + run + result are part of the spec)
+api.analysis.register({ id, label, params, run, resultKind });
+
+// Command + optional toolbar chrome
+api.commands.register("hello", fn, { toolbar: { label: "Hello" } });
+
+// Mode + tools panel
+api.modes.register("my-mode", factory, { panel: { id, render } });
+api.modes.registerToolsPanel("view", { id, title, render });
+
+// Plugin settings only
+api.settings.registerSection({ id, title, render });
+
+api.overlays.add(overlay);
+api.rpc.registerMethod("ping", handler);
+```
+
+There is **no** `api.ui.registerSidebarPanel` / `registerToolbarAction` as a
+generic host-chrome API.
 
 ## Quick start
 
 ```bash
-# after "Use this template"
 npm install
-# edit src/
+# edit a domain under src/
 npm run build
 git add dist && git commit -m "build plugin"
 git tag v0.1.0 && git push origin main --tags
 ```
 
-In MolVis → **Settings → Plugins** → paste:
+MolVis → **Settings → Plugins** → `YOUR_USER/YOUR_REPO@v0.1.0`
 
-```text
-YOUR_USER/YOUR_REPO@v0.1.0
+Or host inject:
+
+```jsonc
+// VS Code
+"molvis.plugins": ["YOUR_USER/YOUR_REPO@v0.1.0"]
 ```
 
-or, while developing against this official template:
-
-```text
-MolCrafts/molvis-plugin-template@master
+```python
+Molvis(plugins=["YOUR_USER/YOUR_REPO@v0.1.0"])
 ```
 
-> Trust model: MolVis loads remote ESM with no audit. Only install sources
-> you trust.
+> Trust model: remote ESM runs in the page. Only install sources you trust.
 
-## Layout
-
-```
-molvis.plugin.json     # host manifest (id, entry, version)
-src/
-  index.tsx            # default export: { id, activate, deactivate? }
-  types/plugin-api.ts  # PluginAPI contracts (in-repo)
-  modifiers/           # pipeline modifiers (use molrs Frame)
-  ui/                  # React panels
-dist/plugin.js         # single ESM bundle — commit after build
-```
-
-### `molvis.plugin.json`
-
-```json
-{
-  "id": "com.example.my-plugin",
-  "name": "My Plugin",
-  "version": "0.1.0",
-  "molvis": ">=0.1.0",
-  "entry": "dist/plugin.js"
-}
-```
-
-Change `id` / `name` when you fork.
-
-## Dependencies
-
-### Peers (must externalize — host provides them)
+## Peers (externalize — never bundle)
 
 | Package | Why |
 |---------|-----|
 | `react` / `react-dom` / `react/jsx-runtime` | Shared React tree |
-| `@molcrafts/molvis-core` | `BaseModifier`, commands, overlays |
-| `@molcrafts/molrs` | `Frame` / `Block` WASM types **shared with host** |
+| `@molcrafts/molvis-core` | modifiers, modes, overlays |
+| `@molcrafts/molrs` | `Frame` / WASM shared with host |
 
-**Never bundle molrs.** A second WASM instance breaks frame identity in the
-pipeline. The rsbuild config already externalizes all peers.
+## Multi-chunk
 
-### molrs usage pattern
+Host recursively rewrites **relative** imports under your entry. You may split:
 
-```ts
-import type { Frame } from "@molcrafts/molrs";
-import { BaseModifier, ModifierCapability } from "@molcrafts/molvis-core";
-
-apply(input: Frame, _ctx): Frame {
-  const atoms = input.getBlock("atoms");
-  // … copy columns, clone frame, write back …
-  return next;
-}
+```js
+// dist/plugin.js
+export { default } from "./activate.js";
 ```
 
-See `src/modifiers/ScaleXModifier.ts`.
+Keep chunks on the same origin as `entry`.
 
-## Types package?
-
-**Not as a separate npm package (for now).** Reasons:
-
-1. Plugin API is still experimental in MolVis.
-2. Domain types already come from `@molcrafts/molvis-core` + `@molcrafts/molrs`.
-3. `src/types/plugin-api.ts` is the contract surface; keep it in sync with
-   molvis `page/src/plugins/types.ts`.
-
-When the host API stabilizes, MolCrafts may publish
-`@molcrafts/molvis-plugin-api` (types-only). Until then, fork this file.
-
-## Build rules
+## Build
 
 ```bash
-npm run build      # → dist/plugin.js (single ESM file)
+npm run build      # → dist/plugin.js
 npm run typecheck
-npm run check      # typecheck + build
+npm run check
 ```
 
-Commit **`dist/`** before tagging so jsDelivr can serve:
-
-`https://cdn.jsdelivr.net/gh/USER/REPO@TAG/dist/plugin.js`
-
-CI fails if `dist/` is stale relative to source.
-
-## Plugin API sketch
-
-```ts
-activate(api) {
-  api.modifiers.register(kind, category, factory)
-  api.modifiers.registerPanel(kind, Component)
-  api.commands.register(name, fn)
-  api.modes.register(id, factory)
-  api.overlays.add(overlay)
-  api.analysis.register(spec)
-  api.ui.registerSidebarPanel(spec)
-  api.ui.registerToolbarAction(spec)
-  api.ui.registerSettingsSection(spec)
-  api.ui.registerModePanel(mode, spec)
-  api.rpc.registerMethod(name, handler) // → plugin.<id>.name
-}
-```
-
-Full definitions: [`src/types/plugin-api.ts`](./src/types/plugin-api.ts).  
-Host docs: [MolVis plugins](https://github.com/MolCrafts/molvis/blob/master/docs/development/plugins.md).
+Commit **`dist/`** before tagging (jsDelivr serves the git tree).
 
 ## License
 

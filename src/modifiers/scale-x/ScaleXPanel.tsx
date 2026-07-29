@@ -1,7 +1,8 @@
 import type { FC } from "react";
 import { useState } from "react";
-import type { ScaleXModifier } from "../modifiers/ScaleXModifier";
+import type { ScaleXModifier } from "./ScaleXModifier";
 
+/** Property panel for {@link ScaleXModifier} — owned by the modifier domain. */
 export const ScaleXPanel: FC<{
   modifier: ScaleXModifier;
   onUpdate: () => void;
