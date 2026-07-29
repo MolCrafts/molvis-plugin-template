@@ -1,0 +1,34 @@
+# Local gates that must match CI (.github/workflows/ci.yml).
+# Install: pip install pre-commit && pre-commit install
+# Run all: pre-commit run --all-files
+
+repos:
+  - repo: local
+    hooks:
+      - id: npm-ci-sync
+        name: package-lock in sync (npm ci --dry-run)
+        entry: bash -c 'npm ci --dry-run --ignore-scripts'
+        language: system
+        pass_filenames: false
+        files: ^(package\.json|package-lock\.json)$
+
+      - id: typecheck
+        name: npm run typecheck
+        entry: bash -c 'npm run typecheck'
+        language: system
+        pass_filenames: false
+        types_or: [ts, tsx, json]
+
+      - id: build
+        name: npm run build
+        entry: bash -c 'npm run build'
+        language: system
+        pass_filenames: false
+        types_or: [ts, tsx, json]
+
+      - id: dist-committed
+        name: dist/ matches build output
+        entry: bash -c 'git add -f dist && git diff --cached --quiet -- dist || (echo "dist/ is stale — run npm run build and stage dist/" >&2; git diff --cached --stat -- dist; exit 1)'
+        language: system
+        pass_filenames: false
+        always_run: true
