@@ -29,8 +29,8 @@
   "peerDependencies": {
     "@molcrafts/molrs": ">=0.10.0",
     "@molcrafts/molvis-core": ">=0.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "peerDependenciesMeta": {
     "@molcrafts/molrs": {
@@ -40,11 +40,12 @@
   "devDependencies": {
     "@molcrafts/molrs": "^0.10.0",
     "@molcrafts/molvis-core": "^0.1.1",
-    "@rsbuild/core": "^2.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "typescript": "^5.8.0"
+    "@rsbuild/core": "^2.1.9",
+    "@rsbuild/plugin-react": "^2.1.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2"
   }
 }
