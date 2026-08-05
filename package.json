@@ -24,6 +24,7 @@
     "build": "rsbuild build",
     "typecheck": "tsc --noEmit",
     "check:contract": "node scripts/check-vendored-contract.mjs",
+    "prepare:release": "node scripts/prepare-release-assets.mjs",
     "check": "npm run check:contract && npm run typecheck && npm run build",
     "prepublishOnly": "npm run check"
   },

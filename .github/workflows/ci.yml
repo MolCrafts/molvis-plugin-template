@@ -1,7 +1,6 @@
 name: ci
 
 # Must stay in lockstep with .pre-commit-config.yaml (local hooks).
-# No lockfile — install from package.json ranges only.
 on:
   push:
     branches: [master, main]
@@ -17,17 +16,13 @@ jobs:
         with:
           node-version: "22"
       - run: npm install
-      # The hash gate is the whole point of vendoring the contract;
-      # it was defined in package.json but never run here.
       - run: npm run check:contract
       - run: npm run typecheck
       - run: npm run build
-      # Host loads dist/plugin.js from GitHub via jsDelivr — keep it in tree.
-      - name: Ensure dist is up to date
-        run: |
-          git add -f dist
-          if ! git diff --cached --quiet; then
-            echo "::error::dist/ is stale. Run npm run build and commit dist/."
-            git diff --cached --stat
-            exit 1
-          fi
+      - run: node scripts/prepare-release-assets.mjs
+      - name: Upload release-assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-release-assets
+          path: release-assets/
+          if-no-files-found: error

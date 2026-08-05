@@ -2,35 +2,33 @@
  * MolVis page plugin entry — domain-oriented registration.
  *
  * Each folder under `src/` is one contribution domain. UI for a domain is
- * registered *with* that domain (modifier panel, analysis form, command
- * toolbar, mode tools, settings section) — there is no `api.ui`.
+ * registered *with* that domain. Optional OOP base: {@link MolvisPlugin}.
  */
 
 import { registerAtomCountAnalysis } from "./analysis/atom-count/register";
 import { registerHelloCommand } from "./commands/hello/register";
 import { registerScaleX } from "./modifiers/scale-x/register";
+import { MolvisPlugin } from "./plugin/MolvisPlugin";
 import { registerAboutSettings } from "./settings/about/register";
-import type { MolvisPluginModule, PluginAPI } from "./types/plugin-api";
+import type { PluginAPI } from "./types/plugin-api";
 
-const plugin: MolvisPluginModule = {
-  id: "com.molcrafts.plugin-template",
-  name: "MolVis Plugin Template",
-  version: "0.1.0",
+class TemplatePlugin extends MolvisPlugin {
+  readonly id = "com.molcrafts.plugin-template";
+  readonly name = "MolVis Plugin Template";
+  readonly version = "0.1.1";
 
-  activate(api: PluginAPI) {
+  activate(api: PluginAPI): void {
     api.log.info("plugin-template activate (domain-oriented)");
 
-    registerScaleX(api); // modifiers/ + property panel
-    registerAtomCountAnalysis(api); // analysis/ → left picker "Plugins"
-    registerHelloCommand(api); // commands/ + optional toolbar
-    registerAboutSettings(api); // settings/ (plugin prefs only)
+    registerScaleX(api);
+    registerAtomCountAnalysis(api);
+    registerHelloCommand(api);
+    registerAboutSettings(api);
+  }
 
-    // modes/ and overlays/ — see README in those folders.
-  },
-
-  deactivate(api: PluginAPI) {
+  deactivate(api: PluginAPI): void {
     api.log.info("plugin-template deactivate");
-  },
-};
+  }
+}
 
-export default plugin;
+export default new TemplatePlugin();
