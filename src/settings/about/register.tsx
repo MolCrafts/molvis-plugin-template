@@ -4,7 +4,8 @@ import type { PluginAPI } from "../../types/plugin-api";
 export function registerAboutSettings(api: PluginAPI): void {
   api.settings.registerSection({
     id: "about",
-    title: "Plugin template",
+    title: "General",
+    group: "MolVis Plugin Template",
     order: 100,
     render: () => (
       <div style={{ fontSize: 12, opacity: 0.85, lineHeight: 1.45 }}>

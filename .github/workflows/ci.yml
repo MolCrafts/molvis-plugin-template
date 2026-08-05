@@ -17,6 +17,9 @@ jobs:
         with:
           node-version: "22"
       - run: npm install
+      # The hash gate is the whole point of vendoring the contract;
+      # it was defined in package.json but never run here.
+      - run: npm run check:contract
       - run: npm run typecheck
       - run: npm run build
       # Host loads dist/plugin.js from GitHub via jsDelivr — keep it in tree.

@@ -23,11 +23,12 @@
   "scripts": {
     "build": "rsbuild build",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run build",
+    "check:contract": "node scripts/check-vendored-contract.mjs",
+    "check": "npm run check:contract && npm run typecheck && npm run build",
     "prepublishOnly": "npm run check"
   },
   "peerDependencies": {
-    "@molcrafts/molrs": ">=0.10.0",
+    "@molcrafts/molrs": ">=0.12.0",
     "@molcrafts/molvis-core": ">=0.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
@@ -38,7 +39,7 @@
     }
   },
   "devDependencies": {
-    "@molcrafts/molrs": "^0.10.0",
+    "@molcrafts/molrs": "^0.12.0",
     "@molcrafts/molvis-core": "^0.1.1",
     "@rsbuild/core": "^2.1.9",
     "@rsbuild/plugin-react": "^2.1.0",
@@ -47,5 +48,6 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "typescript": "^7.0.2"
-  }
+  },
+  "packageManager": "npm@11.17.0+sha512.3eeaf18997b11070d313849268b23766b9db0068997dec9471073170fe43fa17f2b4d0337bf0f52330ee2274e7f5754b21b01052742e48f5c9c74d8b1e32ef43"
 }

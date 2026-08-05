@@ -7,6 +7,13 @@
 repos:
   - repo: local
     hooks:
+      - id: check-contract
+        name: npm run check:contract
+        entry: bash -c 'npm run check:contract'
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: typecheck
         name: npm run typecheck
         entry: bash -c 'npm run typecheck'
@@ -21,9 +28,13 @@ repos:
         pass_filenames: false
         types_or: [ts, tsx, json]
 
+      # After the build hook regenerates dist/, the index must match the
+      # worktree (same invariant CI enforces post-build on a clean checkout).
+      # Use worktree-vs-index — not --cached vs HEAD — so intentional dist
+      # updates can be committed.
       - id: dist-committed
         name: dist/ matches build output
-        entry: bash -c 'git add -f dist && git diff --cached --quiet -- dist || (echo "dist/ is stale — run npm run build and stage dist/" >&2; git diff --cached --stat -- dist; exit 1)'
+        entry: bash -c 'git diff --quiet -- dist || (echo "dist/ is stale — run npm run build and stage dist/" >&2; git diff --stat -- dist; exit 1)'
         language: system
         pass_filenames: false
         always_run: true

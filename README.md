@@ -5,6 +5,9 @@
 Official **template repository** for [MolVis](https://github.com/MolCrafts/molvis)
 page plugins. Use **GitHub → Use this template** (or fork).
 
+Reference collection:
+[molvis-plugins-official](https://github.com/MolCrafts/molvis-plugins-official).
+
 ## Contribution domains (not a free-form UI bag)
 
 Each plugin extends one or more **domains**. UI for that domain is registered
@@ -23,7 +26,7 @@ Each plugin extends one or more **domains**. UI for that domain is registered
 ```
 src/
   index.tsx                 # activate → call each domain register()
-  types/plugin-api.ts       # PluginAPI contract (copy of host types)
+  types/plugin-api.ts       # PluginAPI contract (vendored host types)
   modifiers/scale-x/        # example modifier + panel
   analysis/atom-count/      # example analysis (picker “Plugins” group)
   commands/hello/           # example command + toolbar
@@ -55,8 +58,8 @@ api.overlays.add(overlay);
 api.rpc.registerMethod("ping", handler);
 ```
 
-There is **no** `api.ui.registerSidebarPanel` / `registerToolbarAction` as a
-generic host-chrome API.
+There is **no** generic `api.ui.registerSidebarPanel` /
+`registerToolbarAction` host-chrome API.
 
 ## Quick start
 
@@ -64,13 +67,24 @@ generic host-chrome API.
 npm install
 # edit a domain under src/
 npm run build
+npm run check          # contract hash + typecheck + build
 git add dist && git commit -m "build plugin"
-git tag v0.1.0 && git push origin main --tags
+git tag v0.1.0 && git push origin master --tags
 ```
 
-MolVis → **Settings → Plugins** → `YOUR_USER/YOUR_REPO@v0.1.0`
+Install in MolVis → **Settings → Plugins**:
 
-Or host inject:
+```
+YOUR_USER/YOUR_REPO@v0.1.0
+```
+
+jsDelivr serves the **git tree** (must commit `dist/`):
+
+```
+https://cdn.jsdelivr.net/gh/YOUR_USER/YOUR_REPO@v0.1.0/
+```
+
+Host inject:
 
 ```jsonc
 // VS Code
@@ -83,13 +97,35 @@ Molvis(plugins=["YOUR_USER/YOUR_REPO@v0.1.0"])
 
 > Trust model: remote ESM runs in the page. Only install sources you trust.
 
+## Local debug
+
+Browsers cannot load `file://`. After `npm run build`, serve the repo root over
+HTTP and paste that origin in **Settings → Plugins**, then **Reload** on each
+change:
+
+```bash
+npm run build
+npx --yes serve -l 4173 --cors .
+# plugin source: http://127.0.0.1:4173/
+```
+
+Or point at the entry / manifest explicitly:
+
+| What | URL |
+|------|-----|
+| Directory (manifest) | `http://127.0.0.1:4173/` |
+| Manifest | `http://127.0.0.1:4173/molvis.plugin.json` |
+| Entry | `http://127.0.0.1:4173/dist/plugin.js` |
+
 ## Peers (externalize — never bundle)
 
 | Package | Why |
 |---------|-----|
-| `react` / `react-dom` / `react/jsx-runtime` | Shared React tree |
-| `@molcrafts/molvis-core` | modifiers, modes, overlays |
-| `@molcrafts/molrs` | `Frame` / WASM shared with host |
+| `react` / `react-dom` / `react/jsx-runtime` | Shared React 19 tree |
+| `@molcrafts/molvis-core` | modifiers, modes, overlays, stage |
+| `@molcrafts/molrs` **≥0.12** | `Frame` / WASM shared with host |
+
+Keep peer ranges aligned with the host MolVis release (see official plugins).
 
 ## Multi-chunk
 
@@ -102,15 +138,17 @@ export { default } from "./activate.js";
 
 Keep chunks on the same origin as `entry`.
 
-## Build
+## Build & CI
 
 ```bash
-npm run build      # → dist/plugin.js
+npm run build           # → dist/plugin.js
 npm run typecheck
-npm run check
+npm run check:contract  # vendored PluginAPI hash gate
+npm run check           # contract + typecheck + build
 ```
 
-Commit **`dist/`** before tagging (jsDelivr serves the git tree).
+CI runs `check:contract`, `typecheck`, and `build`, and fails if `dist/` is
+dirty. Commit **`dist/`** before tagging.
 
 ## License
 
