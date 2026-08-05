@@ -1,6 +1,6 @@
 {
   "name": "@molcrafts/molvis-plugin-template",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Official MolVis page plugin template (ESM + molrs + React)",
@@ -29,7 +29,7 @@
   },
   "peerDependencies": {
     "@molcrafts/molrs": ">=0.12.0",
-    "@molcrafts/molvis-core": ">=0.1.0",
+    "@molcrafts/molvis-core": ">=0.2.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@molcrafts/molrs": "^0.12.0",
-    "@molcrafts/molvis-core": "^0.1.1",
+    "@molcrafts/molvis-core": "^0.2.0",
     "@rsbuild/core": "^2.1.9",
     "@rsbuild/plugin-react": "^2.1.0",
     "@types/react": "^19.2.18",
