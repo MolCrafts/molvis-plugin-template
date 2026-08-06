@@ -1,8 +1,0 @@
-{
-  "id": "com.molcrafts.plugin-template",
-  "name": "MolVis Plugin Template",
-  "version": "0.1.1",
-  "molvis": ">=0.2.0",
-  "entry": "dist/plugin.js",
-  "description": "Official template: Scale-X modifier using molrs Frame + toolbar demo"
-}

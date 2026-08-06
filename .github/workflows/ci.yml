@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,13 +16,43 @@ jobs:
         with:
           node-version: "22"
       - run: npm install
-      - run: npm run check:contract
-      - run: npm run typecheck
-      - run: npm run build
-      - run: node scripts/prepare-release-assets.mjs
-      - name: Upload release-assets
-        uses: actions/upload-artifact@v4
+      - run: npm test
+
+  # The one artifact this package ships is `template/`, so the gate has to be
+  # the generated project, not this repo's own sources. The SDK is unpublished,
+  # so scaffold beside a host checkout and let the CLI's sibling detection
+  # rewrite the deps to `file:../molvis/*`.
+  scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
         with:
-          name: plugin-release-assets
-          path: release-assets/
-          if-no-files-found: error
+          path: cli
+      - uses: actions/checkout@v4
+        with:
+          repository: MolCrafts/molvis
+          path: work/molvis
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build the host SDK
+        working-directory: work/molvis
+        run: |
+          npm install
+          npm run build:plugin
+
+      - name: Scaffold a project
+        working-directory: work
+        run: node ../cli/bin/molvis-plugin.mjs create demo-plugin --id com.example.demo --name "Demo" -y
+
+      - name: Generated project must install, typecheck and build
+        working-directory: work/demo-plugin
+        run: |
+          npm install
+          npm run typecheck
+          npm run build
+
+      - name: Generated project must carry a .gitignore
+        working-directory: work/demo-plugin
+        run: test -f .gitignore

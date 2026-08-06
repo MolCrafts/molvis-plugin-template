@@ -1,0 +1,43 @@
+name: release
+
+# Tagging `v*` builds the plugin and uploads flat assets to a GitHub Release.
+# MolVis installs plugins by repo (`owner/repo` or `owner/repo@v1.2.3`), reads
+# `molvis.plugin.json` from the Release, and resolves `entry` relative to it —
+# so the assets must be flat and `entry` must lose its `dist/` prefix.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npm run check
+
+      - name: Stage flat release assets
+        run: |
+          set -euo pipefail
+          test -f dist/plugin.js
+          rm -rf release-assets && mkdir -p release-assets
+          find dist -maxdepth 1 -type f \
+            ! -name '*.map' ! -name '*.LICENSE.txt' ! -name '.DS_Store' \
+            -exec cp {} release-assets/ \;
+          node -e "const f=require('fs'),m=JSON.parse(f.readFileSync('molvis.plugin.json'));m.entry='plugin.js';f.writeFileSync('release-assets/molvis.plugin.json',JSON.stringify(m,null,2)+'\n')"
+
+      - name: Create / update the Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --generate-notes
+          cd release-assets && gh release upload "$TAG" ./* --clobber
