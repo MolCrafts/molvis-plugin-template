@@ -18,41 +18,27 @@ jobs:
       - run: npm install
       - run: npm test
 
-  # The one artifact this package ships is `template/`, so the gate has to be
-  # the generated project, not this repo's own sources. The SDK is unpublished,
-  # so scaffold beside a host checkout and let the CLI's sibling detection
-  # rewrite the deps to `file:../molvis/*`.
+  # The shipped artifact is `template/`. Scaffold into a directory with no
+  # sibling molvis checkout so deps resolve to the published 0.2.0 range.
   scaffold:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: cli
-      - uses: actions/checkout@v4
-        with:
-          repository: MolCrafts/molvis
-          path: work/molvis
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-
-      - name: Build the host SDK
-        working-directory: work/molvis
-        run: |
-          npm install
-          npm run build:plugin
+      - run: npm install
 
       - name: Scaffold a project
-        working-directory: work
-        run: node ../cli/bin/molvis-plugin.mjs create demo-plugin --id com.example.demo --name "Demo" -y
+        run: node bin/molvis-plugin.mjs create /tmp/demo-plugin --id com.example.demo --name "Demo" -y
 
       - name: Generated project must install, typecheck and build
-        working-directory: work/demo-plugin
+        working-directory: /tmp/demo-plugin
         run: |
           npm install
           npm run typecheck
           npm run build
 
       - name: Generated project must carry a .gitignore
-        working-directory: work/demo-plugin
+        working-directory: /tmp/demo-plugin
         run: test -f .gitignore

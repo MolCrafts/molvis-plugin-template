@@ -73,13 +73,11 @@ covering a `src/` that was never published while `template/` compiled nowhere.
 CI therefore has two jobs:
 
 1. `test` — `node --test` over `tests/`.
-2. `scaffold` — check out MolVis, build the SDK, scaffold a project beside it
-   so sibling detection rewrites the deps to `file:../molvis/*`, then run the
-   **generated** project's `npm install && npm run typecheck && npm run build`.
-
-Job 2 exists because `@molcrafts/molvis-plugin` is not published yet. When it
-is, the sibling checkout can go and the scaffold job becomes a plain
-`npx molvis-plugin create && npm install && npm run build`.
+2. `scaffold` — `npx molvis-plugin create` into a directory with **no**
+   sibling MolVis checkout, then the generated project's
+   `npm install && npm run typecheck && npm run build` against the published
+   `@molcrafts/molvis-plugin@^0.2.0`. A sibling `file:` pin is only for
+   local host hacking; CI must prove the published path.
 
 ## Contract distribution
 

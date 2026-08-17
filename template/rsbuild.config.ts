@@ -1,7 +1,6 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
-// Prefer package name for Node config resolve; sources still use umbrella paths.
-import { pluginExternals } from "@molcrafts/molvis-plugin";
+import { pluginExternals } from "@molcrafts/molvis-plugin/externals";
 
 /**
  * MolVis page plugin build.

@@ -50,10 +50,10 @@ npm install
 npm run build      # → dist/plugin.js
 ```
 
-If a MolVis checkout sits next to your project (`../molvis`), the scaffolder
-notices and pins dependencies to it (`file:../molvis/plugin`) instead of the
-published range. That is currently the only way to build, because the SDK is
-not on npm yet.
+Dependencies default to the published 0.2.0 range
+(`@molcrafts/molvis-plugin`, plus the engines as peers). If a MolVis checkout
+sits next to the new project (`../molvis`), the scaffolder pins `file:`
+paths instead so you can hack the host and the plugin together.
 
 ## Public SDK
 
@@ -68,7 +68,7 @@ Take build externals from the SDK rather than retyping them — a plugin that
 bundles a host module gets a second React or a second WASM instance:
 
 ```ts
-import { pluginExternals } from "@molcrafts/molvis-plugin";
+import { pluginExternals } from "@molcrafts/molvis-plugin/externals";
 ```
 
 ## Install the plugin in MolVis
@@ -83,6 +83,7 @@ npm test           # node --test, no framework
 
 The substitution rules live in `lib/scaffold.mjs`, kept free of prompts so
 they can be tested directly; `lib/create.mjs` is the interactive shell around
-them. CI additionally scaffolds a project against a host checkout and runs the
-generated project's own `typecheck` and `build` — the shipped artifact is
-`template/`, so that is what has to be gated.
+them. CI scaffolds a project with no sibling MolVis checkout and runs the
+generated project's own `typecheck` and `build` against published
+`@molcrafts/molvis-plugin@^0.2.0` — the shipped artifact is `template/`, so
+that is what has to be gated.

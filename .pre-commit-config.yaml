@@ -1,5 +1,4 @@
-# Local gates that must match CI (.github/workflows/ci.yml `test` job).
-# The `scaffold` job needs a host checkout and is CI-only.
+# Local gates that must match CI (.github/workflows/ci.yml).
 # Install: pip install pre-commit && pre-commit install
 # Run all: pre-commit run --all-files
 #
@@ -14,3 +13,10 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: scaffold
+        name: scaffold generated project against published SDK
+        entry: bash -c 'rm -rf /tmp/molvis-plugin-scaffold && node bin/molvis-plugin.mjs create /tmp/molvis-plugin-scaffold --id com.example.demo --name Demo -y && (cd /tmp/molvis-plugin-scaffold && npm install && npm run typecheck && npm run build && test -f .gitignore)'
+        language: system
+        pass_filenames: false
+        always_run: true
+

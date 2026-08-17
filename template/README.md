@@ -18,7 +18,7 @@ In MolVis: **Settings → Plugins** → `owner/repo[@v1.2.3]` (or local
 ```ts
 import { MolvisPlugin, type PluginAPI } from "@molcrafts/molvis-plugin";
 import { Button } from "@molcrafts/molvis-plugin/ui";
-import { pluginExternals } from "@molcrafts/molvis-plugin";
+import { pluginExternals } from "@molcrafts/molvis-plugin/externals";
 ```
 
 Do **not** import monorepo paths like `page/src/...`. CSS tokens and shadcn
