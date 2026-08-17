@@ -7,34 +7,16 @@
 repos:
   - repo: local
     hooks:
-      - id: check-contract
-        name: npm run check:contract
-        entry: bash -c 'npm run check:contract'
+      - id: test
+        name: npm test
+        entry: bash -c 'npm test'
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: scaffold
+        name: scaffold generated project against published SDK
+        entry: bash -c 'rm -rf /tmp/molvis-plugin-scaffold && node bin/molvis-plugin.mjs create /tmp/molvis-plugin-scaffold --id com.example.demo --name Demo -y && (cd /tmp/molvis-plugin-scaffold && npm install && npm run typecheck && npm run build && test -f .gitignore)'
         language: system
         pass_filenames: false
         always_run: true
 
-      - id: typecheck
-        name: npm run typecheck
-        entry: bash -c 'npm run typecheck'
-        language: system
-        pass_filenames: false
-        types_or: [ts, tsx, json]
-
-      - id: build
-        name: npm run build
-        entry: bash -c 'npm run build'
-        language: system
-        pass_filenames: false
-        types_or: [ts, tsx, json]
-
-      # After the build hook regenerates dist/, the index must match the
-      # worktree (same invariant CI enforces post-build on a clean checkout).
-      # Use worktree-vs-index — not --cached vs HEAD — so intentional dist
-      # updates can be committed.
-      - id: dist-committed
-        name: dist/ matches build output
-        entry: bash -c 'git diff --quiet -- dist || (echo "dist/ is stale — run npm run build and stage dist/" >&2; git diff --stat -- dist; exit 1)'
-        language: system
-        pass_filenames: false
-        always_run: true

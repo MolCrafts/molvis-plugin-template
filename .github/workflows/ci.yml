@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,13 +16,29 @@ jobs:
         with:
           node-version: "22"
       - run: npm install
-      - run: npm run check:contract
-      - run: npm run typecheck
-      - run: npm run build
-      - run: node scripts/prepare-release-assets.mjs
-      - name: Upload release-assets
-        uses: actions/upload-artifact@v4
+      - run: npm test
+
+  # The shipped artifact is `template/`. Scaffold into a directory with no
+  # sibling molvis checkout so deps resolve to the published 0.2.0 range.
+  scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          name: plugin-release-assets
-          path: release-assets/
-          if-no-files-found: error
+          node-version: "22"
+      - run: npm install
+
+      - name: Scaffold a project
+        run: node bin/molvis-plugin.mjs create /tmp/demo-plugin --id com.example.demo --name "Demo" -y
+
+      - name: Generated project must install, typecheck and build
+        working-directory: /tmp/demo-plugin
+        run: |
+          npm install
+          npm run typecheck
+          npm run build
+
+      - name: Generated project must carry a .gitignore
+        working-directory: /tmp/demo-plugin
+        run: test -f .gitignore

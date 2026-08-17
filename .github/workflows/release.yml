@@ -1,17 +1,16 @@
 name: release
 
+# This repo ships a CLI (`npx molvis-plugin create`), so a tag publishes to
+# npm. It no longer builds a plugin, so there are no GitHub Release assets.
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Existing tag to (re)publish assets for"
-        required: true
 
 permissions:
-  contents: write
+  contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -21,21 +20,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          registry-url: "https://registry.npmjs.org"
       - run: npm install
-      - run: npm run check:contract
-      - run: npm run typecheck
-      - run: npm run build
-      - run: node scripts/prepare-release-assets.mjs
-      - name: Create / update GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npm test
+
+      - name: Tag must match package.json version
         run: |
           set -euo pipefail
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --title "$TAG" --generate-notes
-          fi
-          (
-            cd release-assets
-            gh release upload "$TAG" ./* --clobber
-          )
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p 'require("./package.json").version')"
+          [ "$TAG" = "$PKG" ] || { echo "tag $TAG != package.json $PKG" >&2; exit 1; }
+
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,10 +1,21 @@
 {
-  "name": "@molcrafts/molvis-plugin-template",
-  "version": "0.1.1",
-  "private": true,
-  "type": "module",
-  "description": "Official MolVis page plugin template (ESM + molrs + React)",
+  "name": "molvis-plugin",
+  "version": "0.2.0",
+  "description": "CLI to scaffold MolVis page plugins — npx molvis-plugin create",
   "license": "BSD-3-Clause",
+  "type": "module",
+  "bin": {
+    "molvis-plugin": "./bin/molvis-plugin.mjs",
+    "create-molvis-plugin": "./bin/molvis-plugin.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "template",
+    "README.md",
+    "LICENSE",
+    "ARCHITECTURE.md"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/MolCrafts/molvis-plugin-template.git"
@@ -16,39 +27,24 @@
   "keywords": [
     "molvis",
     "molcrafts",
-    "molrs",
     "plugin",
+    "create",
+    "scaffold",
+    "cli",
     "molecular-visualization"
   ],
   "scripts": {
-    "build": "rsbuild build",
-    "typecheck": "tsc --noEmit",
-    "check:contract": "node scripts/check-vendored-contract.mjs",
-    "prepare:release": "node scripts/prepare-release-assets.mjs",
-    "check": "npm run check:contract && npm run typecheck && npm run build",
-    "prepublishOnly": "npm run check"
+    "molvis-plugin": "node ./bin/molvis-plugin.mjs",
+    "create": "node ./bin/molvis-plugin.mjs create",
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "check": "npm test"
   },
-  "peerDependencies": {
-    "@molcrafts/molrs": ">=0.12.0",
-    "@molcrafts/molvis-core": ">=0.2.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "minimist": "^1.2.8"
   },
-  "peerDependenciesMeta": {
-    "@molcrafts/molrs": {
-      "optional": false
-    }
+  "engines": {
+    "node": ">=20"
   },
-  "devDependencies": {
-    "@molcrafts/molrs": "^0.12.0",
-    "@molcrafts/molvis-core": "^0.2.0",
-    "@rsbuild/core": "^2.1.9",
-    "@rsbuild/plugin-react": "^2.1.0",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "typescript": "^7.0.2"
-  },
-  "packageManager": "npm@11.17.0+sha512.3eeaf18997b11070d313849268b23766b9db0068997dec9471073170fe43fa17f2b4d0337bf0f52330ee2274e7f5754b21b01052742e48f5c9c74d8b1e32ef43"
+  "packageManager": "npm@11.17.0"
 }
