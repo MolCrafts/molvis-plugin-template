@@ -83,7 +83,7 @@ npm test           # node --test, no framework
 
 The substitution rules live in `lib/scaffold.mjs`, kept free of prompts so
 they can be tested directly; `lib/create.mjs` is the interactive shell around
-them. CI scaffolds a project with no sibling MolVis checkout and runs the
+them. CI (`test.yml`, see `ARCHITECTURE.md`) scaffolds a project with no sibling MolVis checkout and runs the
 generated project's own `typecheck` and `build` against published
 `@molcrafts/molvis-plugin@^0.2.0` — the shipped artifact is `template/`, so
 that is what has to be gated.
