@@ -72,20 +72,26 @@ covering a `src/` that was never published while `template/` compiled nowhere.
 
 CI therefore gates two things:
 
-1. `test / unit` — `node --test` over `tests/`.
+1. `test / unit (<os>)` — `node --test` over `tests/`.
 2. `test / scaffold` — `npx molvis-plugin create` into a directory with **no**
    sibling MolVis checkout, then the generated project's
    `npm install && npm run typecheck && npm run build` against the published
    `@molcrafts/molvis-plugin@^0.2.0`. A sibling `file:` pin is only for
    local host hacking; CI must prove the published path.
 
-| workflow | feature branch (fork or upstream) | dev / master / main, or a PR into one | upstream only |
+`test / tier` picks the tier: the fast tier on a feature-branch push to
+MolCrafts; the full tier on every push to a fork (so a branch is proven before
+its pull request), on dev, master and main on MolCrafts, and on pull requests,
+tags and dispatches.
+
+| workflow | fast tier | full tier | upstream only |
 |---|---|---|---|
-| `test.yml` | `test / unit`, `test / scaffold` | + `test / unit (macos-latest)`, `test / unit (windows-latest)` | — |
+| `test.yml` | `test / tier`, `test / unit (ubuntu-latest)`, `test / scaffold` | + `test / unit (macos-latest)`, `test / unit (windows-latest)` | — |
 | `release.yml` | — | — | `v*` tag: `release / npm` publishes; `workflow_dispatch` is a dry run anywhere |
 
-A pull request from a branch of the same repository skips the jobs its push
-already ran. `.pre-commit-config.yaml` runs the same two gates locally.
+A pull request inside a fork skips: its push already ran the full tier. Setup
+is `MolCrafts/molcrafts-ci/actions/setup-node@master`.
+`.pre-commit-config.yaml` runs the same two gates locally.
 
 ## Contract distribution
 
