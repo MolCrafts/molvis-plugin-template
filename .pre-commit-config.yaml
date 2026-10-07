@@ -1,4 +1,4 @@
-# Local gates that must match CI (.github/workflows/ci.yml).
+# Local gates that must match CI (.github/workflows/test.yml).
 # Install: pip install pre-commit && pre-commit install
 # Run all: pre-commit run --all-files
 #

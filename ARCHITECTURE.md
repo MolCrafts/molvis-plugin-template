@@ -70,14 +70,22 @@ The shipped artifact is `template/`, so gating this repo's own sources would
 prove nothing — for a while the situation was exactly inverted, with `tsconfig`
 covering a `src/` that was never published while `template/` compiled nowhere.
 
-CI therefore has two jobs:
+CI therefore gates two things:
 
-1. `test` — `node --test` over `tests/`.
-2. `scaffold` — `npx molvis-plugin create` into a directory with **no**
+1. `test / unit` — `node --test` over `tests/`.
+2. `test / scaffold` — `npx molvis-plugin create` into a directory with **no**
    sibling MolVis checkout, then the generated project's
    `npm install && npm run typecheck && npm run build` against the published
    `@molcrafts/molvis-plugin@^0.2.0`. A sibling `file:` pin is only for
    local host hacking; CI must prove the published path.
+
+| workflow | feature branch (fork or upstream) | dev / master / main, or a PR into one | upstream only |
+|---|---|---|---|
+| `test.yml` | `test / unit`, `test / scaffold` | + `test / unit (macos-latest)`, `test / unit (windows-latest)` | — |
+| `release.yml` | — | — | `v*` tag: `release / npm` publishes; `workflow_dispatch` is a dry run anywhere |
+
+A pull request from a branch of the same repository skips the jobs its push
+already ran. `.pre-commit-config.yaml` runs the same two gates locally.
 
 ## Contract distribution
 

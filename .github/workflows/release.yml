@@ -1,36 +1,44 @@
 name: release
 
-# This repo ships a CLI (`npx molvis-plugin create`), so a tag publishes to
-# npm. It no longer builds a plugin, so there are no GitHub Release assets.
+# A `v*` tag on MolCrafts publishes the CLI (`npx molvis-plugin create`) to
+# npm. workflow_dispatch is a dry run anywhere: same gates, `npm publish
+# --dry-run`. Trusted publishing (OIDC) needs npm >= 11.5, hence Node 24;
+# an empty NPM_TOKEN leaves npm on the id-token.
 on:
   push:
-    tags:
-      - "v*"
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  publish:
+  npm:
+    name: release / npm
+    if: github.event_name == 'workflow_dispatch' || github.repository_owner == 'MolCrafts'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PUBLISH: ${{ github.event_name == 'push' && github.repository_owner == 'MolCrafts' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
         with:
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
-      - run: npm install
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
       - run: npm test
-
-      - name: Tag must match package.json version
+      - name: Tag matches package.json
+        if: env.PUBLISH == 'true'
         run: |
-          set -euo pipefail
           TAG="${GITHUB_REF_NAME#v}"
           PKG="$(node -p 'require("./package.json").version')"
           [ "$TAG" = "$PKG" ] || { echo "tag $TAG != package.json $PKG" >&2; exit 1; }
-
-      - run: npm publish --provenance --access public
+      - run: npm publish --provenance --access public ${{ env.PUBLISH != 'true' && '--dry-run' || '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

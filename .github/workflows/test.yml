@@ -1,0 +1,60 @@
+name: test
+
+# Contexts (docs: ARCHITECTURE.md "What CI gates"):
+#   feature branch push (fork or upstream)  test / unit, test / scaffold
+#   dev / master / main, or a PR into one    + test / unit on macOS and Windows
+# A PR from a branch of the same repository skips what its push already ran.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [dev, master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' && !contains(fromJSON('["refs/heads/dev","refs/heads/master","refs/heads/main"]'), github.ref) }}
+
+jobs:
+  unit:
+    name: test / unit
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - run: npm test
+
+  unit-os:
+    name: test / unit (${{ matrix.os }})
+    if: github.event_name != 'push' || contains(fromJSON('["refs/heads/dev","refs/heads/master","refs/heads/main"]'), github.ref)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - run: npm test
+
+  # The shipped artifact is `template/`. Scaffold into a directory with no
+  # sibling molvis checkout so deps resolve to the published SDK range.
+  scaffold:
+    name: test / scaffold
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - run: node bin/molvis-plugin.mjs create "$RUNNER_TEMP/demo-plugin" --id com.example.demo --name Demo -y
+      - name: Generated project installs, typechecks, builds and carries a .gitignore
+        working-directory: ${{ runner.temp }}/demo-plugin
+        run: |
+          npm install
+          npm run typecheck
+          npm run build
+          test -f .gitignore
