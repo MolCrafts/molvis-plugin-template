@@ -2,8 +2,9 @@ name: release
 
 # A `v*` tag on MolCrafts publishes the CLI (`npx molvis-plugin create`) to
 # npm. workflow_dispatch is a dry run anywhere: same gates, `npm pack
-# --dry-run`. Trusted publishing (OIDC) needs npm >= 11.5, hence Node 24;
-# an empty NPM_TOKEN leaves npm on the id-token.
+# --dry-run`. Trusted publishing (OIDC: release.yml, environment `npm`) needs
+# npm >= 11.5, hence Node 24; an empty NODE_AUTH_TOKEN leaves npm on the
+# id-token. A dispatch enters no environment.
 on:
   push:
     tags: ["v*"]
@@ -21,6 +22,7 @@ jobs:
     name: release / npm
     if: github.event_name == 'workflow_dispatch' || github.repository_owner == 'MolCrafts'
     runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'push' && 'npm' || '' }}
     permissions:
       contents: read
       id-token: write
@@ -42,7 +44,7 @@ jobs:
       - if: env.PUBLISH == 'true'
         run: npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ""
       # A dry run must not depend on the version being unpublished.
       - if: env.PUBLISH != 'true'
         run: npm pack --dry-run
