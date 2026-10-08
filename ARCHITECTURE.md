@@ -90,7 +90,8 @@ tags and dispatches.
 | workflow | fast tier | full tier | upstream only |
 |---|---|---|---|
 | `test.yml` | `test / context`, `test / unit (ubuntu-latest)`, `test / scaffold` | + `test / unit (macos-latest)`, `test / unit (windows-latest)` | — |
-| `release.yml` | — | — | `v*` tag: `release / npm` publishes; `workflow_dispatch` is a dry run anywhere |
+| `lint.yml` | `lint / context`, `lint / workflows` | same | — |
+| `release.yml` | — | — | `release / pack` (tests, `npm pack --dry-run`); a `v*` tag on MolCrafts (`publish`): `release / npm` publishes; `workflow_dispatch` is a dry run anywhere |
 
 A pull request inside a fork runs only the context jobs: its push already ran the full tier. Setup
 is `MolCrafts/molcrafts-ci/actions/setup-node@master`.

@@ -1,10 +1,11 @@
 name: release
 
 # A `v*` tag on MolCrafts publishes the CLI (`npx molvis-plugin create`) to
-# npm. workflow_dispatch is a dry run anywhere: same gates, `npm pack
-# --dry-run`. Trusted publishing (OIDC: release.yml, environment `npm`) needs
-# npm >= 11.5, hence Node 24; an empty NODE_AUTH_TOKEN leaves npm on the
-# id-token. A dispatch enters no environment.
+# npm. workflow_dispatch is a dry run anywhere: `release / pack` (the tests,
+# `npm pack --dry-run`), no upload. Only `release / npm` uploads, and only when
+# `needs.context.outputs.publish` is true. Trusted publishing (OIDC:
+# release.yml, environment `npm`) needs npm >= 11.5, hence Node 24; an empty
+# NODE_AUTH_TOKEN leaves npm on the id-token.
 on:
   push:
     tags: ["v*"]
@@ -13,9 +14,7 @@ on:
 permissions:
   contents: read
 
-# One group per file, workflow, event and ref. Under workflow_call (release.yml
-# running lint/test) github.workflow and github.event_name are the caller's, so
-# a called run never shares, and so never cancels, a direct run's group.
+# One group per file, workflow, event and ref; a release is never cancelled.
 concurrency:
   group: release-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
@@ -30,39 +29,47 @@ jobs:
       upstream: ${{ steps.context.outputs.upstream }}
       integration: ${{ steps.context.outputs.integration }}
       skip-pr: ${{ steps.context.outputs.skip-pr }}
-      cancel: ${{ steps.context.outputs.cancel }}
+      publish: ${{ steps.context.outputs.publish }}
     steps:
       - id: context
         uses: MolCrafts/molcrafts-ci/actions/ci-context@master
 
-  npm:
-    name: release / npm
+  pack:
+    name: release / pack
     needs: context
     if: github.event_name == 'workflow_dispatch' || needs.context.outputs.upstream == 'true'
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'push' && 'npm' || '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: MolCrafts/molcrafts-ci/actions/setup-node@master
+        with:
+          node-version: "24"
+      - run: npm test
+      - name: Tag matches package.json
+        if: needs.context.outputs.publish == 'true'
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p 'require("./package.json").version')"
+          [ "$TAG" = "$PKG" ] || { echo "tag $TAG != package.json $PKG" >&2; exit 1; }
+      # A dry run must not depend on the version being unpublished.
+      - run: npm pack --dry-run
+
+  npm:
+    name: release / npm
+    needs: [context, pack]
+    # A `v*` tag on MolCrafts, and nothing else: actions/ci-context decides.
+    if: needs.context.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment: npm
     permissions:
       contents: read
       id-token: write
-    env:
-      PUBLISH: ${{ github.event_name == 'push' && needs.context.outputs.upstream == 'true' }}
     steps:
       - uses: actions/checkout@v7
       - uses: MolCrafts/molcrafts-ci/actions/setup-node@master
         with:
           node-version: "24"
           registry-url: https://registry.npmjs.org
-      - run: npm test
-      - name: Tag matches package.json
-        if: env.PUBLISH == 'true'
-        run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          PKG="$(node -p 'require("./package.json").version')"
-          [ "$TAG" = "$PKG" ] || { echo "tag $TAG != package.json $PKG" >&2; exit 1; }
-      - if: env.PUBLISH == 'true'
-        run: npm publish --provenance --access public
+      - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ""
-      # A dry run must not depend on the version being unpublished.
-      - if: env.PUBLISH != 'true'
-        run: npm pack --dry-run
