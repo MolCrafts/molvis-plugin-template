@@ -79,17 +79,20 @@ CI therefore gates two things:
    `@molcrafts/molvis-plugin@^0.2.0`. A sibling `file:` pin is only for
    local host hacking; CI must prove the published path.
 
-`test / tier` picks the tier: the fast tier on a feature-branch push to
+Each workflow's first job, `<file> / context`, runs
+`MolCrafts/molcrafts-ci/actions/ci-context@master`, which decides the tier,
+upstream-only gating and pull-request dedup; the other jobs read its outputs.
+The fast tier runs on a feature-branch push to
 MolCrafts; the full tier on every push to a fork (so a branch is proven before
 its pull request), on dev, master and main on MolCrafts, and on pull requests,
 tags and dispatches.
 
 | workflow | fast tier | full tier | upstream only |
 |---|---|---|---|
-| `test.yml` | `test / tier`, `test / unit (ubuntu-latest)`, `test / scaffold` | + `test / unit (macos-latest)`, `test / unit (windows-latest)` | — |
+| `test.yml` | `test / context`, `test / unit (ubuntu-latest)`, `test / scaffold` | + `test / unit (macos-latest)`, `test / unit (windows-latest)` | — |
 | `release.yml` | — | — | `v*` tag: `release / npm` publishes; `workflow_dispatch` is a dry run anywhere |
 
-A pull request inside a fork skips: its push already ran the full tier. Setup
+A pull request inside a fork runs only the context jobs: its push already ran the full tier. Setup
 is `MolCrafts/molcrafts-ci/actions/setup-node@master`.
 `.pre-commit-config.yaml` runs the same two gates locally.
 
