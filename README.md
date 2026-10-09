@@ -50,10 +50,17 @@ npm install
 npm run build      # → dist/plugin.js
 ```
 
-Dependencies default to the published 0.2.0 range
+Dependencies default to the published 0.3.0 range
 (`@molcrafts/molvis-plugin`, plus the engines as peers). If a MolVis checkout
 sits next to the new project (`../molvis`), the scaffolder pins `file:`
 paths instead so you can hack the host and the plugin together.
+
+The `modifiers/scale-x` example is the registration contract: a local kind
+(`scale-x`) and `toProjectParams` / `fromProjectParams` for settings that
+must survive save and reload. `BaseModifier` and `nextModifierId` are
+imported from `@molcrafts/molvis-stage`, which the published 0.3.0 SDK
+provides. A separate menu `label` is passed to `register` once the
+installed plugin package accepts it.
 
 ## Public SDK
 
