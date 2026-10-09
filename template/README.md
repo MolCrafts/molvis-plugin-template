@@ -22,7 +22,12 @@ import { pluginExternals } from "@molcrafts/molvis-plugin/externals";
 ```
 
 Do **not** import monorepo paths like `page/src/...`. CSS tokens and shadcn
-primitives are re-exported from `@molcrafts/molvis-plugin`.
+primitives come from `@molcrafts/molvis-plugin`. Modifier bases
+(`BaseModifier`, `nextModifierId`) come from `@molcrafts/molvis-stage`.
+
+`src/modifiers/scale-x` registers kind `scale-x`. The host namespaces that
+kind. `factor` round-trips through project save because the modifier
+implements `toProjectParams` / `fromProjectParams`.
 
 ## Release
 

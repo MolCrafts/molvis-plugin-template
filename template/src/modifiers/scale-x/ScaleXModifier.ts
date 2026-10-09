@@ -1,27 +1,52 @@
 /**
- * Example pipeline modifier — scales atom X via the host molrs gateway.
+ * Example pipeline modifier — scales atom X.
+ *
+ * `SCALE_X_KIND` is the local registry id. The host stores it as
+ * `plugin.<pluginId>.scale-x`, which is what project files and
+ * `pipeline.add_modifier` use. `toProjectParams` / `fromProjectParams`
+ * keep `factor` across save and reload.
+ *
+ * `BaseModifier` and `nextModifierId` come from `@molcrafts/molvis-stage`,
+ * which the published SDK re-exports the host engines as. A menu `label`
+ * separate from the registry id is a host option; pass it in `register`
+ * once the installed `@molcrafts/molvis-plugin` accepts it.
  */
 
+import type { Frame } from "@molcrafts/molvis-core/molrs";
+import { Frame as MolrsFrame } from "@molcrafts/molvis-core/molrs";
 import {
-  type Frame,
-  Frame as MolrsFrame,
-} from "@molcrafts/molvis-core/molrs";
-import { BaseModifier, ModifierCapability } from "@molcrafts/molvis-stage";
+  BaseModifier,
+  ModifierCapability,
+  nextModifierId,
+} from "@molcrafts/molvis-stage";
 
-export const SCALE_X_KIND = "Scale X";
+export const SCALE_X_KIND = "scale-x";
+export const SCALE_X_LABEL = "Scale X";
+
+function readNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
 
 export class ScaleXModifier extends BaseModifier {
-  factor = 1.0;
+  factor = 1;
 
   constructor() {
     super(
-      `scale-x-${Math.random().toString(36).slice(2, 9)}`,
-      SCALE_X_KIND,
+      nextModifierId(SCALE_X_KIND),
+      SCALE_X_LABEL,
       new Set([ModifierCapability.TransformsData]),
     );
   }
 
-  apply(input: Frame, _ctx: unknown): Frame {
+  toProjectParams(): Record<string, unknown> {
+    return { factor: this.factor };
+  }
+
+  fromProjectParams(params: Record<string, unknown>): void {
+    this.factor = readNumber(params.factor, 1);
+  }
+
+  apply(input: Frame, _context: unknown): Frame {
     if (this.factor === 1) return input;
 
     const atoms = input.getBlock("atoms");

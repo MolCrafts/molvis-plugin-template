@@ -85,7 +85,27 @@ test("dependencyVars points at a sibling checkout when one exists", () => {
 });
 
 test("dependencyVars falls back to the published range", () => {
-  assert.equal(dependencyVars(false).molvisPluginDep, "^0.2.0");
+  assert.equal(dependencyVars(false).molvisPluginDep, "^0.3.0");
+  assert.equal(dependencyVars(false).molvisStageDep, "^0.3.0");
+});
+
+test("scale-x example uses a local id, a menu label, and project params", () => {
+  const modifier = readFileSync(
+    join(TEMPLATE, "src", "modifiers", "scale-x", "ScaleXModifier.ts"),
+    "utf8",
+  );
+  const register = readFileSync(
+    join(TEMPLATE, "src", "modifiers", "scale-x", "register.ts"),
+    "utf8",
+  );
+  assert.match(modifier, /from "@molcrafts\/molvis-stage"/);
+  assert.match(modifier, /SCALE_X_KIND = "scale-x"/);
+  assert.match(modifier, /toProjectParams/);
+  assert.match(modifier, /fromProjectParams/);
+  assert.match(modifier, /nextModifierId/);
+  assert.doesNotMatch(modifier, /Math\.random/);
+  assert.match(register, /SCALE_X_KIND/);
+  assert.match(register, /panel: ScaleXPanel/);
 });
 
 test("writeProject ships the template gitignore as a real dotfile", () => {

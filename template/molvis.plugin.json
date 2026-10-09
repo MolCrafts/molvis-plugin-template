@@ -2,7 +2,7 @@
   "id": "{{pluginId}}",
   "name": "{{pluginName}}",
   "version": "{{version}}",
-  "molvis": ">=0.2.0",
+  "molvis": ">=0.3.0",
   "entry": "dist/plugin.js",
   "description": "{{pluginName}}"
 }

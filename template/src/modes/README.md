@@ -22,6 +22,11 @@ api.modes.registerToolsPanel("view", {
 });
 ```
 
-A full custom mode needs a core `BaseMode`-compatible class (pointer
-lifecycle). This template ships analysis / modifier / command demos instead;
-add a mode when you need exclusive interaction.
+A full custom mode needs a `PluginMode` (`name`, `start`, `finish`). This
+template ships analysis / modifier / command demos instead; add a mode when
+you need exclusive pointer handling.
+
+To hand a built molecule to Edit's stamp tool, call `stageEditMolecule`
+from `@molcrafts/molvis-plugin` on a host that exports it. It frees the
+frame and throws if Edit is not the active mode. The published 0.3.0 SDK
+does not export that function yet.
