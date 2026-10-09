@@ -62,7 +62,7 @@ jobs:
       - if: env.PUBLISH == 'true'
         run: npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ""
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       # A dry run must not depend on the version being unpublished.
       - if: env.PUBLISH != 'true'
         run: npm pack --dry-run
