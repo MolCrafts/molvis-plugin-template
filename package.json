@@ -1,6 +1,6 @@
 {
   "name": "molvis-plugin",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "CLI to scaffold MolVis page plugins — npx molvis-plugin create",
   "license": "BSD-3-Clause",
   "type": "module",
